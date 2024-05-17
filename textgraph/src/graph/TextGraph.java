@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 
-public class TextGraphProcessor {
+public class TextGraph {
 
     public static void main(String[] args) {
-        // 创建Scanner对象用于接收用户输入
+
         Scanner scanner = new Scanner(System.in);
         String filePath = args.length > 0 ? args[0] : "";
 
@@ -24,7 +24,7 @@ public class TextGraphProcessor {
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
             String text = String.join(" ", lines);
-            String[] words = text.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
+            String[] words = text.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");//按空白字符分割字符串
 
             for (int i = 0; i < words.length - 1; i++) {
                 graph.addEdge(words[i], words[i + 1]);
@@ -46,7 +46,7 @@ public class TextGraphProcessor {
                 try {
                     choice = Integer.parseInt(scanner.nextLine());
                 } catch (NumberFormatException e) {
-                    System.out.println("无效选择，请输入数字。");
+                    System.out.println("无效选择，请输入数字1-5");
                     continue;
                 }
 
@@ -79,7 +79,7 @@ public class TextGraphProcessor {
                         System.out.println("退出程序");
                         return;
                     default:
-                        System.out.println("无效选择，请重试.");
+                        System.out.println("无效选择，请重试");
                 }
             }
 
@@ -106,6 +106,7 @@ public class TextGraphProcessor {
     static void showDirectedGraph(Graph graph) {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("graph.dot"))) {
             writer.write("digraph G {\n");
+            //遍历键值对
             for (var entry : graph.getAdjList().entrySet()) {
                 for (var edge : entry.getValue().entrySet()) {
                     writer.write(String.format("\"%s\" -> \"%s\" [label=\"%d\"];\n", entry.getKey(), edge.getKey(), edge.getValue()));
@@ -243,6 +244,7 @@ public class TextGraphProcessor {
             }
 
             String finalCurrent = current;
+            //过滤
             List<String> possibleNextNodes = edges.keySet().stream()
                     .filter(next -> !visitedEdges.contains(finalCurrent + "->" + next))
                     .toList();
