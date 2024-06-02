@@ -163,8 +163,12 @@ public class TextGraph {
     static String queryBridgeWords(Graph graph, String word1, String word2) {
         word1 = word1.toLowerCase();
         word2 = word2.toLowerCase();
-        if (!graph.getAdjList().containsKey(word1) || !graph.getAdjList().containsKey(word2)) {
-            return "No word1 or word2 in the graph!";
+        if (!graph.getAdjList().containsKey(word1) && graph.getAdjList().containsKey(word2)) {
+            return "No \"" + word1 + "\" in the graph!";
+        } else if (graph.getAdjList().containsKey(word1) && !graph.getAdjList().containsKey(word2)) {
+            return "No \"" + word2 + "\" in the graph!";
+        } else if (!graph.getAdjList().containsKey(word1) && !graph.getAdjList().containsKey(word2)) {
+            return "No \"" + word1 +"\" and \"" + word2 + "\" in the graph!";
         }
 
         Set<String> bridges = new HashSet<>();
@@ -177,7 +181,7 @@ public class TextGraph {
         }
 
         if (bridges.isEmpty()) {
-            return "No bridge words from " + word1 + " to " + word2 + "!";
+            return "No bridge words from \"" + word1 + "\" to \"" + word2 + "\"!";
         } else {
             try {
                 writeDotFileWithHighlight(graph, word1, word2, bridges);
@@ -185,7 +189,7 @@ public class TextGraph {
                 System.out.println("生成dot文件失败: " + e.getMessage());
                 return "Failed to write DOT file with highlights!";
             }
-            return "The bridge words from " + word1 + " to " + word2 + " are: " + String.join(", ", bridges) + ".\nHighlighted DOT file saved.";
+            return "The bridge words from \"" + word1 + "\" to \"" + word2 + "\" are: " + String.join(", ", bridges);
         }
     }
 
@@ -202,7 +206,6 @@ public class TextGraph {
             Process p = pb.start();
             //等待进程结束
             p.waitFor();
-            System.out.println("图结构已生成: " + "highlight.png");
         } catch (IOException | InterruptedException e) {
             System.out.println("生成图形文件失败: " + e.getMessage());
         }
@@ -261,8 +264,12 @@ public class TextGraph {
         word1 = word1.toLowerCase();
         word2 = word2.toLowerCase();
 
-        if (!graph.getAdjList().containsKey(word1) || !graph.getAdjList().containsKey(word2)) {
-            return "No word1 or word2 in the graph!";
+        if (!graph.getAdjList().containsKey(word1) && graph.getAdjList().containsKey(word2)) {
+            return "No \"" + word1 + "\" in the graph!";
+        } else if (graph.getAdjList().containsKey(word1) && !graph.getAdjList().containsKey(word2)) {
+            return "No \"" + word2 + "\" in the graph!";
+        } else if (!graph.getAdjList().containsKey(word1) && !graph.getAdjList().containsKey(word2)) {
+            return "No \"" + word1 +"\" and \"" + word2 + "\" in the graph!";
         }
 
         // Dijkstra 算法 具体实现
@@ -326,6 +333,7 @@ public class TextGraph {
             return "Graph is empty";
         }
         String current = nodes.get(new Random().nextInt(nodes.size()));
+        System.out.println(current);
         StringBuilder path = new StringBuilder(current);
         Set<String> visitedEdges = new HashSet<>();
         boolean[] stopFlag = {false};
