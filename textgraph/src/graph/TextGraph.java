@@ -31,6 +31,7 @@ public class TextGraph {
             for (int i = 0; i < words.length - 1; i++) {
                 graph.addEdge(words[i], words[i + 1]);
             }
+            graph.addEdge(words[words.length-1],null);
 
             // 展示有向图
             System.out.println("请输出生成图片名称");
@@ -105,7 +106,7 @@ public class TextGraph {
             Map<String, Integer> innerMap = adjList.get(begin);
             if (innerMap.containsKey(end)) {
                 innerMap.put(end, innerMap.get(end) + 1);
-            } else {
+            } else if(end != null){
                 innerMap.put(end, 1);
             }
 
