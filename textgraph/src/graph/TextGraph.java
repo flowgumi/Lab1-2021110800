@@ -6,91 +6,105 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class TextGraph {
-
     public static void main(String[] args) {
-        // 创建Scanner对象用于接收用户输入
         Scanner scanner = new Scanner(System.in);
         String filePath = args.length > 0 ? args[0] : "";
 
-        // 如果没有通过命令行参数提供文件路径，则提示用户输入
         if (filePath.isEmpty()) {
             System.out.println("请输入文本文件路径:");
             filePath = scanner.nextLine();
         }
 
-        Graph graph = new Graph();
+        Graph graph = generateGraphFromFile(filePath);
 
-        // 读取文件并生成图
+        if (graph == null) {
+            return;
+        }
+
+        // 展示有向图
+        System.out.println("请输出生成图片名称");
+        String fileName = scanner.nextLine();
+        showDirectedGraph(graph, fileName);
+
+        while (true) {
+            System.out.println("请选择操作:");
+            System.out.println("1. 查询桥接词");
+            System.out.println("2. 根据bridge word生成新文本");
+            System.out.println("3. 计算两个单词之间的最短路径");
+            System.out.println("4. 随机游走");
+            System.out.println("5. 退出");
+            System.out.println("请选择操作:");
+
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("无效选择，请输入数字。");
+                continue;
+            }
+
+            String word1, word2;
+            switch (choice) {
+                case 1:
+                    System.out.println("请输入两个单词:");
+                    word1 = scanner.next();
+                    word2 = scanner.next();
+                    scanner.nextLine();  // 清除缓冲区
+                    System.out.println(queryBridgeWords(graph, word1, word2));
+                    break;
+                case 2:
+                    System.out.println("请输入一行新文本:");
+                    String newText = scanner.nextLine();
+                    System.out.println(generateNewText(graph, newText));
+                    break;
+                case 3:
+                    System.out.println("请输入两个单词:");
+                    System.out.println("请输入第一个单词:");
+
+                    word1 = scanner.nextLine().trim(); // 读取整行输入并去除两端空白
+                    System.out.println("请输入第二个单词:");
+                    word2 = scanner.nextLine().trim(); // 同上
+
+                    // 如果任一输入为空
+                    if (word1.isEmpty() || word2.isEmpty()) {
+                        System.out.println("Lack of words");
+                    } else {
+                        System.out.println(calcShortestPath(graph, word1, word2));
+                    }
+                    break;
+                case 4:
+                    System.out.println("随机游走结果:");
+                    System.out.println(randomWalk(graph));
+                    break;
+                case 5:
+                    System.out.println("退出程序");
+                    return;
+                default:
+                    System.out.println("无效选择，请重试.");
+            }
+        }
+    }
+
+    // 从文件中生成图
+    public static Graph generateGraphFromFile(String filePath) {
+        Graph graph = new Graph();
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
-            String text = String.join(" ", lines);   //毁成一行
-            String[] words = text.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");  //这里不区分大小写
+            String text = String.join(" ", lines);
+            String[] words = text.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
 
             for (int i = 0; i < words.length - 1; i++) {
                 graph.addEdge(words[i], words[i + 1]);
             }
-            graph.addEdge(words[words.length-1],null);
+            graph.addEdge(words[words.length - 1], null);
 
-            // 展示有向图
-            System.out.println("请输出生成图片名称");
-            String fileName = scanner.nextLine();
-            showDirectedGraph(graph,fileName);
-
-            // 主菜单循环
-            while (true) {
-                System.out.println("请选择操作:");
-                System.out.println("1. 查询桥接词");
-                System.out.println("2. 根据bridge word生成新文本");
-                System.out.println("3. 计算两个单词之间的最短路径");
-                System.out.println("4. 随机游走");
-                System.out.println("5. 退出");
-                System.out.println("请选择操作:");
-
-                int choice;
-                try {
-                    choice = Integer.parseInt(scanner.nextLine());
-                } catch (NumberFormatException e) {
-                    System.out.println("无效选择，请输入数字。");
-                    continue;
-                }
-
-                String word1, word2;
-                switch (choice) {
-                    case 1:
-                        System.out.println("请输入两个单词:");
-                        word1 = scanner.next();
-                        word2 = scanner.next();
-                        scanner.nextLine();  // 清除缓冲区
-                        System.out.println(queryBridgeWords(graph, word1, word2));
-                        break;
-                    case 2:
-                        System.out.println("请输入一行新文本:");
-                        String newText = scanner.nextLine();
-                        System.out.println(generateNewText(graph, newText));
-                        break;
-                    case 3:
-                        System.out.println("请输入两个单词:");
-                        word1 = scanner.next();
-                        word2 = scanner.next();
-                        scanner.nextLine();  // 清除缓冲区
-                        System.out.println(calcShortestPath(graph, word1, word2));
-                        break;
-                    case 4:
-                        System.out.println("随机游走结果:");
-                        System.out.println(randomWalk(graph));
-                        break;
-                    case 5:
-                        System.out.println("退出程序");
-                        return;
-                    default:
-                        System.out.println("无效选择，请重试.");
-                }
-            }
-
+            return graph;
         } catch (IOException e) {
             System.out.println("文件读取失败: " + e.getMessage());
+            return null;
         }
     }
 
@@ -264,6 +278,15 @@ public class TextGraph {
     static String calcShortestPath(Graph graph, String word1, String word2) {
         word1 = word1.toLowerCase();
         word2 = word2.toLowerCase();
+        String regex = "^[a-zA-Z]+$";
+
+        if (word1 == null || word1.isEmpty() || word2 == null || word2.isEmpty()) {
+            return "Lack of words";
+        }
+        // 检查输入是否为合法单词
+        if (!Pattern.matches(regex, word1) || !Pattern.matches(regex, word2)) {
+            return "Invalid input: Input strings must be alphabetic words.";
+        }
 
         if (!graph.getAdjList().containsKey(word1) && graph.getAdjList().containsKey(word2)) {
             return "No \"" + word1 + "\" in the graph!";
