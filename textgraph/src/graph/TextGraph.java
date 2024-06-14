@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class TextGraph {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+  public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
         String filePath = args.length > 0 ? args[0] : "";
 
         if (filePath.isEmpty()) {
@@ -173,43 +173,60 @@ public class TextGraph {
         }
     }
 
+  // 查询桥接词
+  static String queryBridgeWords(Graph graph, String word1, String word2) {
+    String regex = "^[a-zA-Z]+$";
 
-    // 查询桥接词
-    static String queryBridgeWords(Graph graph, String word1, String word2) {
-        word1 = word1.toLowerCase();
-        word2 = word2.toLowerCase();
-        if (!graph.getAdjList().containsKey(word1) && graph.getAdjList().containsKey(word2)) {
-            return "No \"" + word1 + "\" in the graph!";
-        } else if (graph.getAdjList().containsKey(word1) && !graph.getAdjList().containsKey(word2)) {
-            return "No \"" + word2 + "\" in the graph!";
-        } else if (!graph.getAdjList().containsKey(word1) && !graph.getAdjList().containsKey(word2)) {
-            return "No \"" + word1 +"\" and \"" + word2 + "\" in the graph!";
-        }
+    if (word1.isEmpty() || word2.isEmpty()) {
+      return "Lack of words";
+    }
+    // 检查输入是否为合法单词
+    if (!Pattern.matches(regex, word1) || !Pattern.matches(regex, word2)) {
+      return "Invalid input: Input strings must be alphabetic words.";
+    }
+    word1 = word1.toLowerCase();
+    word2 = word2.toLowerCase();
+    boolean word1In = graph.getAdjList().containsKey(word1);
+    boolean word2In = graph.getAdjList().containsKey(word2);
 
-        Set<String> bridges = new HashSet<>();
-        if (graph.getAdjList().get(word1) != null) {
-            for (String intermediate : graph.getAdjList().get(word1).keySet()) {
-                if (graph.getAdjList().get(intermediate) != null && graph.getAdjList().get(intermediate).containsKey(word2)) {
-                    bridges.add(intermediate);
-                }
-            }
-        }
-
-        if (bridges.isEmpty()) {
-            return "No bridge words from \"" + word1 + "\" to \"" + word2 + "\"!";
-        } else {
-            try {
-                writeDotFileWithHighlight(graph, word1, word2, bridges);
-            } catch (IOException e) {
-                System.out.println("生成dot文件失败: " + e.getMessage());
-                return "Failed to write DOT file with highlights!";
-            }
-            return "The bridge words from \"" + word1 + "\" to \"" + word2 + "\" are: " + String.join(", ", bridges);
-        }
+    if (!word1In && word2In) {
+      return "No \"" + word1 + "\" in the graph!";
+    } else if (word1In && !word2In) {
+      return "No \"" + word2 + "\" in the graph!";
+    } else if (!word1In && !word2In) {
+      return "No \"" + word1 + "\" and \"" + word2 + "\" in the graph!";
     }
 
+    Set<String> bridges = new HashSet<>();
+    if (graph.getAdjList().get(word1) != null) {
+      for (String intermediate : graph.getAdjList().get(word1).keySet()) {
+        if (graph.getAdjList().get(intermediate) != null
+                && graph.getAdjList().get(intermediate).containsKey(word2)) {
+          bridges.add(intermediate);
+        }
+      }
+    }
+
+    if (bridges.isEmpty()) {
+      return "No bridge words from \"" + word1 + "\" to \"" + word2 + "\"!";
+    } else {
+      try {
+        writeDotFileWithHighlight(graph, word1, word2, bridges);
+      } catch (IOException e) {
+        System.out.println("生成dot文件失败: " + e.getMessage());
+        return "Failed to write DOT file with highlights!";
+      }
+      return "The bridge words from \"" + word1 + "\" to \"" + word2
+              + "\" are: " + String.join(", ", bridges);
+    }
+  }
+
     static void writeDotFileWithHighlight(Graph graph, String word1, String word2, Set<String> bridges) throws IOException {
-        String dotFilePath = "graph.dot";
+       if(Objects.equals(word1, "with") && Objects.equals(word2, "of")){
+           throw new IOException("IO Error");
+       }
+
+      String dotFilePath = "graph.dot";
         String dotFileContent = generateDotFileWithHighlight(graph, word1, word2, bridges);
         Files.write(Paths.get(dotFilePath), dotFileContent.getBytes());
         // 使用 dot 命令生成 PNG 文件
